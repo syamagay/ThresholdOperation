@@ -4,12 +4,13 @@
 // from TChain tree/
 //////////////////////////////////////////////////////////
 
-#ifndef tune_evaluation_h
-#define tune_evaluation_h
+#ifndef tune_evaluation_via_h
+#define tune_evaluation_via_h
 
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <iostream>
 
 // Header file for the classes stored in the TTree if any.
 
@@ -27,10 +28,14 @@ public :
    Int_t           target_threshold;
    Double_t        Threshold;
    Double_t        Noise;
+   Double_t        Threshold_via;
+   Double_t        Noise_via;
+
    Int_t           DiffVth1;
    Int_t           DiffVth2;
    Int_t           DiffPrecomp;
    Int_t           TDAC;
+   Int_t           TDAC_via;
    Int_t           Enable;
 
    // List of branches
@@ -40,13 +45,16 @@ public :
    TBranch        *b_target_threshold;   //!
    TBranch        *b_Threshold;   //!
    TBranch        *b_Noise;   //!
+   TBranch        *b_Threshold_via;   //!
+   TBranch        *b_Noise_via;   //!
    TBranch        *b_DiffVth1;   //!
    TBranch        *b_DiffVth2;   //!
    TBranch        *b_DiffPrecomp;   //!
    TBranch        *b_TDAC;   //!
+   TBranch        *b_TDAC_via;   //!
    TBranch        *b_Enable;   //!
 
-   tune_evaluation(TTree *tree=0);
+   tune_evaluation(TTree *tree=0, std::string str="all", std::string output="picture/");
    virtual ~tune_evaluation();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -55,15 +63,25 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+   virtual int      PixelSelection(int col, int row);
+   virtual void     Set_TargetPixel(std::string target_pixel);
+
+   bool bool_Threshold_via;
+   bool bool_Noise_via;
+   bool bool_TDAC_via;
+   std::string output_dir;
+   std::string target_pixel;
 };
 
 #endif
 
 #ifdef tune_evaluation_cxx
-tune_evaluation::tune_evaluation(TTree *tree) : fChain(0) 
+tune_evaluation::tune_evaluation(TTree *tree, std::string str, std::string output) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
+   target_pixel=str;
+   output_dir=output;
    if (tree == 0) {
 
 #ifdef SINGLE_TREE
@@ -173,6 +191,9 @@ void tune_evaluation::Init(TTree *tree)
    // Init() will be called many times when running on PROOF
    // (once per file to be processed).
 
+   bool_Threshold_via=false;
+   bool_Noise_via=false;
+
    // Set branch addresses and branch pointers
    if (!tree) return;
    fChain = tree;
@@ -185,11 +206,22 @@ void tune_evaluation::Init(TTree *tree)
    fChain->SetBranchAddress("target_threshold", &target_threshold, &b_target_threshold);
    fChain->SetBranchAddress("Threshold", &Threshold, &b_Threshold);
    fChain->SetBranchAddress("Noise", &Noise, &b_Noise);
+   if(fChain->GetBranchStatus("Threshold_via")==1){
+     bool_Threshold_via=true;
+     fChain->SetBranchAddress("Threshold_via", &Threshold_via, &b_Threshold_via);
+   }
+   if(fChain->GetBranchStatus("Noise_via")==1){
+     bool_Noise_via=true;
+     fChain->SetBranchAddress("Noise_via", &Noise_via, &b_Noise_via);
+   }
+   if(fChain->GetBranchStatus("TDAC_via")==1){
+     fChain->SetBranchAddress("TDAC_via", &TDAC_via, &b_TDAC_via);
+   }
    fChain->SetBranchAddress("DiffVth1", &DiffVth1, &b_DiffVth1);
    fChain->SetBranchAddress("DiffVth2", &DiffVth2, &b_DiffVth2);
    fChain->SetBranchAddress("DiffPrecomp", &DiffPrecomp, &b_DiffPrecomp);
-    fChain->SetBranchAddress("TDAC", &TDAC, &b_TDAC);
-    fChain->SetBranchAddress("Enable", &Enable, &b_Enable);
+   fChain->SetBranchAddress("TDAC", &TDAC, &b_TDAC);
+   fChain->SetBranchAddress("Enable", &Enable, &b_Enable);
    Notify();
 }
 
@@ -217,5 +249,9 @@ Int_t tune_evaluation::Cut(Long64_t entry)
 // returns  1 if entry is accepted.
 // returns -1 otherwise.
    return 1;
+}
+
+void tune_evaluation::Set_TargetPixel(std::string str){
+  target_pixel=str;
 }
 #endif // #ifdef tune_evaluation_cxx
