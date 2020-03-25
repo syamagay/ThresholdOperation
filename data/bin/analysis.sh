@@ -23,5 +23,5 @@ done
 cd ..
 #echo $i
 
-root -q -l tools/analysis.cpp+'("'$DIR'",'$file_num')'
+root -q -l RootMacro/analysis.cpp+'("'$DIR'",'$file_num')'
 #root -q -l src/analysis.cpp+'("'$DIR'",'$i')'
