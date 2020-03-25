@@ -107,7 +107,9 @@ int analysis(std::string DIR_name, int file_num){
   gStyle->SetStatW(0.14);
 
 
-  std::string TMP_DIR="/home/yamagaya/Desktop/Yarr-sw/Low-threshold/root/";
+  //std::string TMP_DIR="/home/yamagaya/Desktop/Yarr-sw/Low-threshold/root/";
+  std::string TMP_DIR="./";
+
   //  std::string target_DIR=TMP_DIR+"changing_VTH1_0603";
   std::string target_DIR=TMP_DIR+DIR_name;
   std::string analysis_file=target_DIR+"/analysis.root";
